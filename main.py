@@ -4,6 +4,12 @@ import sys
 
 constants = {}  # Глобальный словарь для хранения констант
 
+def validate_name(name):
+    """Проверяет, соответствует ли имя правилам [a-z][a-z0-9_]*"""
+    name = name.strip()
+    if not re.fullmatch(r'[a-z][a-z0-9_]*', name):
+        raise ValueError(f"Недопустимое имя: {name}")
+
 def parse_value(value):
     # Проверка на число
     if re.match(r'^\d+$', value):
@@ -21,6 +27,7 @@ def parse_value(value):
     # Проверка на вычисление константы
     elif re.match(r'^\|([a-z][a-z0-9_]*)\|$', value):
         const_name = re.match(r'^\|([a-z][a-z0-9_]*)\|$', value).group(1)
+        validate_name(const_name)
         if const_name not in constants:
             raise ValueError(f"Константа {const_name} не определена.")
         return constants[const_name]
@@ -65,6 +72,7 @@ def parse_dict(value):
             if len(key_value) != 2:
                 raise ValueError(f"Невалидный словарь: {pair}")
             key = key_value[0].strip()
+            validate_name(key)
             value = parse_value(key_value[1].strip())
             dictionary[key] = value
             current = []
@@ -96,16 +104,18 @@ def parse_config(input_text):
         if not line:
             continue
 
-        match_def = re.match(r'^def\s+([a-z][a-z0-9_]*?)\s*:=\s*(.*)\s*;$', line)
+        match_def = re.match(r'^def\s+(.*)\s*:=\s*(.*)\s*;$', line)
         if match_def:
-            name = match_def.group(1)
+            name = match_def.group(1).strip()
+            validate_name(name)
             value = parse_value(match_def.group(2))
             constants[name] = value
             continue
 
-        match_compute = re.match(r'^\|([a-z][a-z0-9_]*)\|$', line)
+        match_compute = re.match(r'^\|(.*)\|$', line)
         if match_compute:
-            name = match_compute.group(1)
+            name = match_compute.group(1).strip()
+            validate_name(name)
             if name not in constants:
                 raise ValueError(f"Константа {name} не определена.")
             config[name] = constants[name]
