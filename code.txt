@@ -1,0 +1,4 @@
+def admin_id := 90;
+def database := { server => q(localhost), ports => [8001, 8002], users => {user1 => 1, user2 => 2}, connection_max => 5000, admin => |admin_id| };
+|database|
+|admin_id|
